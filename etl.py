@@ -6,19 +6,35 @@ from sql_queries import *
 
 
 def process_song_file(cur, filepath):
+    """
+    This function takes the information about the song located at filepath 
+    and persists the artist and song information.
+    
+    Inputs:
+    * cur = cursor that holds the reference to the database
+    * filepath = full path of the file being parsed
+    """
     # open song file
     df = pd.read_json(filepath, lines=True)
+
+    # insert artist record
+    artist_data = df[["artist_id", "artist_name", "artist_location", "artist_latitude", "artist_longitude"]].values[0].tolist()
+    cur.execute(artist_table_insert, artist_data)
 
     # insert song record
     song_data = df[["song_id", "title", "artist_id", "year", "duration"]].values[0].tolist()
     cur.execute(song_table_insert, song_data)
     
-    # insert artist record
-    artist_data = df[["artist_id", "artist_name", "artist_location", "artist_latitude", "artist_longitude"]].values[0].tolist()
-    cur.execute(artist_table_insert, artist_data)
-
 
 def process_log_file(cur, filepath):
+    """
+    This function reads each log file and captures and persists the information
+    related to each song listen.  
+    
+    Inputs:
+    * cur = cursor that holds the reference to the recordset
+    * filepath = full path of the file being parsed
+    """
     # open log file
     df = pd.read_json(filepath, lines=True)
 
@@ -63,6 +79,16 @@ def process_log_file(cur, filepath):
 
 
 def process_data(cur, conn, filepath, func):
+    """
+    This function iterates over each of the data files and processes 
+    the song information and the log information.
+    
+    Inputs:
+    * cur = cursor that holds the reference to the recordset
+    * conn = holds the connection to the database
+    * filepath = full path of the file being parsed
+    * func = pointer to the function to call
+    """
     # get all files matching extension from directory
     all_files = []
     for root, dirs, files in os.walk(filepath):
